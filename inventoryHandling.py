@@ -22,6 +22,7 @@ def get_articles(connection):
         articles = pd.read_sql_query("SELECT * from Articles;", connection)
         articles.fillna('-',inplace=True)
         articles.sort_values(by=['creationDate','productID'],inplace=True)
+        articles['productID'] = '<a href="http://localhost:5000/modify_article?id='+articles['productID']+'">'+articles['productID']+'</a>'
         articles.rename(columns={'ID':'ID control','productID':'ID producto','name':'Nombre','description':'Descripcion','unit':'Unidades','category':'Categoria','defaultPrice':'Costo predeterminado','creationDate':'Fecha creacion'},inplace=True)
         return articles
     except:
@@ -33,13 +34,21 @@ def create_article(article,user,cursor,connection):
     article_id = article[0].strip("'").strip('"')
     article_name = article[1].strip("'").strip('"')
     article_description = article[2].strip("'").strip('"')
-    article_unit = article[3].strip("'").strip('"')
-    article_category = article[4].strip("'").strip('"')
+    article_category = article[3].strip("'").strip('"')
+    article_unit = article[4].strip("'").strip('"')
     article_default_price = article[5].strip("'").strip('"')
-    try:
-        article_default_price = float(article_default_price)
-    except:
-        return 'Ups! El precio ingresado no es valido.','#E87012'
+
+    if article_default_price != '':
+        try:
+            article_default_price = float(article_default_price)
+            if isinstance(article_default_price, float):
+                pass
+            else:
+                return 'Ups! El precio ingresado no es valido.','#E87012'
+        except:
+            return 'Ups! El precio ingresado no es valido.','#E87012'
+    else:
+        pass
     if len(article_id)<=20:
         regex = re.compile('[^A-Za-z0-9]')
         if(regex.search(article_id) == None):
@@ -78,25 +87,91 @@ def create_article(article,user,cursor,connection):
     if len(article_category)<=20:
         regex = re.compile('[^A-Za-z0-9\s]')
         if(regex.search(article_category) == None):
+            print('La categoria recibida: ',article_category)
             if len(pd.read_sql_query("SELECT categoryID from Categories where categoryID like '"+str(article_category)+"';", connection))!=0:
                 pass
             else:
-                return 'Ups! Parece que esa categoria no existe en la tabla de categorias.'
+                return 'Ups! Parece que esa categoria no existe en la tabla de categorias.','#E87012'
         else:
             return 'Ups! La categoria del articulo ingresada es invalida.','#E87012'
     else:
         return 'Ups! La categoria del articulo ingresada es invalida.','#E87012'
-    if isinstance(article_default_price, float):
-        pass
-    else:
-        return 'Ups! Parece que el precio ingresado es invalido.'
     try:
         creation_date = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        cursor.execute("insert into Articles(productID,name,description,unit,category,defaultPrice,creationDate) values('"+article_id+"','"+article_name+"','"+article_description+"','"+article_unit+"','"+article_description+"','"+article_category+"','"+str(article_default_price)+"');")
+        print("insert into Articles(productID,name,description,unit,category,defaultPrice,creationDate) values('"+article_id+"','"+article_name+"','"+article_description+"','"+article_unit+"','"+article_category+"','"+str(article_default_price)+"','"+creation_date+"');")
+        cursor.execute("insert into Articles(productID,name,description,unit,category,defaultPrice,creationDate) values('"+article_id+"','"+article_name+"','"+article_description+"','"+article_unit+"','"+article_category+"','"+str(article_default_price)+"','"+creation_date+"');")
         connection.commit()
         return 'Excelente! El articulo se ha creado con exito.','#5CA343'
     except Exception as e:
         return 'Ups, algo salio mal! Intentalo de nuevo.','#E87012'
+
+#Quedamos aqui
+def modify_article(username,article,cursor,connection):
+    article_id = article[0].strip("'").strip('"')
+    article_name = article[1].strip("'").strip('"')
+    article_description = article[2].strip("'").strip('"')
+    article_category = article[3].strip("'").strip('"')
+    article_unit = article[4].strip("'").strip('"')
+    article_default_price = article[5].strip("'").strip('"')
+    if article_name != '':
+        if len(article_name)<=20:
+            regex = re.compile('[^A-Za-z0-9\s]')
+            print(regex.search(article_name))
+            if(regex.search(article_name) == None):
+                if len(pd.read_sql_query("SELECT name from Articles where name like '"+str(article_name)+"';", connection))==0:
+                    try:
+                        cursor.execute("update Articles set name='"+str(article_name)+"' where productID='"+str(article_id)+"'")
+                        connection.commit()
+                    except Exception as e:
+                        return 'Ups! Algo salio mal intentando modificar el nombre. Intentalo de nuevo.','#E87012'
+                else:
+                    return 'Ups! El nombre del articulo ingresado ya existe.','#E87012'
+            else:
+                return 'Ups! El nombre del articulo ingresado es invalido.','#E87012'
+        else:
+            return 'Ups! El nombre del articulo ingresado es invalido.','#E87012'
+    if article_description != '':
+        if len(article_description)<=100:
+            try:
+                cursor.execute("update Articles set description='"+str(article_description)+"' where productID='"+str(article_id)+"'")
+                connection.commit()
+            except Exception as e:
+                return 'Ups! Algo salio mal intentando modificar la descripcion. Intentalo de nuevo.','#E87012'
+        else:
+            return 'Ups! La descripcion del articulo es invalida.','#E87012'
+    if article_category != '':
+        if len(article_category)<=20:
+            regex = re.compile('[^A-Za-z0-9\s]')
+            if(regex.search(article_category) == None):
+                print('La categoria recibida: ',article_category)
+                if len(pd.read_sql_query("SELECT categoryID from Categories where categoryID like '"+str(article_category)+"';", connection))!=0:
+                    pass
+                else:
+                    return 'Ups! Parece que esa categoria no existe en la tabla de categorias.','#E87012'
+            else:
+                return 'Ups! La categoria del articulo ingresada es invalida.','#E87012'
+        else:
+            return 'Ups! La categoria del articulo ingresada es invalida.','#E87012'
+    if article_unit != '':
+        if len(article_unit)<=20:
+            regex = re.compile('[^A-Za-z0-9\s]')
+            if(regex.search(article_unit) == None):
+                pass
+            else:
+                return 'Ups! La unidad del articulo ingresada es invalida.','#E87012'
+        else:
+            return 'Ups! La unidad del articulo ingresada es invalida.','#E87012'
+    if article_default_price != '':
+        try:
+            article_default_price = float(article_default_price)
+            if isinstance(article_default_price, float):
+                pass
+            else:
+                return 'Ups! El precio ingresado no es valido.','#E87012'
+        except:
+            return 'Ups! El precio ingresado no es valido.','#E87012'
+    return 'Excelente! Los cambios se han aplicado con exito.','#5CA343'
+
 
 def get_categories(connection):
     try:

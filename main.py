@@ -95,7 +95,6 @@ def password_reset():
             else:
                 return render_template('password_reset.html',message='Las contrasenas no coinciden. Intentalo de nuevo.')
         else:
-            print('Dentro del ese antes de renderear template')
             return render_template('password_reset.html',message='')
     else:
         return redirect('/exit')
@@ -209,6 +208,29 @@ def add_article():
             return render_template('add_article.html',data=category_options['name'],name=user.get_name(),last_name=user.get_last_name(),message=message,color=color,avatar_path=user.get_avatar_path())
         else:
             return render_template('add_article.html',data=category_options['name'],name=user.get_name(),last_name=user.get_last_name(),message='',color='',avatar_path=user.get_avatar_path())
+    else:
+        return redirect('/exit')
+
+@app.route('/modify_article',methods=['POST','GET'])
+def modify_article():
+    global temp
+    if session.get_state() == 1:
+        category_options = inventoryHandling.get_all_categories(connection)
+        if request.method=='GET':
+            temp = request.args.get('id')
+            return render_template('modify_article.html',data=category_options['name'],article_id=temp,message='',color='',name=user.get_name(),last_name=user.get_last_name(),avatar_path=user.get_avatar_path())
+        if request.method=='POST':
+            article = [temp,request.form['name'],request.form['description'],request.form['category'],request.form['unit'],request.form['defaultPrice']]
+            if article[3] != '-':
+                category = category_options[category_options['name']==article[3]]
+                if len(category)>0:
+                    article[3] = category['categoryID'].values[0]
+                else:
+                    return render_template('modify_article.html',data=category_options['name'],article_id=temp,name=user.get_name(),last_name=user.get_last_name(),message='Ups! Hubo un problema con esa categoria.',color='#E87012',avatar_path=user.get_avatar_path())
+            else:
+                article[3] = ''
+            message,color = inventoryHandling.modify_article(user.get_username(),article,cursor,connection)
+            return render_template('modify_article.html',data=category_options['name'],article_id=temp,message=message,color=color,name=user.get_name(),last_name=user.get_last_name(),avatar_path=user.get_avatar_path())
     else:
         return redirect('/exit')
 

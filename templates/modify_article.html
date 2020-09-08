@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Nuevo articulo - Aplicacion</title>
+    <title>Modificar articulo - Aplicacion</title>
     <link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <link rel="stylesheet" href="static/fonts/fontawesome-all.min.css">
@@ -73,7 +73,10 @@
                     </div>
                 </nav>
                 <div class="container-fluid">
-                    <h3 class="text-dark mb-4">Nuevo articulo</h3>
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0">Modificar articulo</h3>
+                        <a class="btn btn-primary btn-sm d-none d-sm-inline-block" role="button" href="/articles"><i class="fas fa-undo"></i>&nbsp;Regresar</a>
+                    </div>
                     <div class="row mb-3">
                         <div class="col-lg-12">
                             <div class="row mb-3 d-none">
@@ -106,7 +109,7 @@
                                 <div class="col">
                                     <div class="card shadow mb-3">
                                         <div class="card-header py-3">
-                                            <p class="text-primary m-0 font-weight-bold">Sigue estas normas para la creacion de una nuevo articulo</p><br>
+                                            <p class="text-primary m-0 font-weight-bold">Sigue estas normas para la modificacion de un articulo</p><br>
                                             <p class="text-gray-600 small" style="line-height:2px;"> - El ID y el nombre no deben contener caracteres especiales ni ser mayores de 20 caracteres. <b>Ejemplos: MT0031 y "Material Tipo 31"</b></p>
                                             <p class="text-gray-600 small" style="line-height:2px;"> - Ni el ID ni el nombre pueden existir ya en la lista de articulos.
                                             <p class="text-gray-600 small" style="line-height:2px;"> - La descripcion no debe ser contener mas de 100 caracteres</p>
@@ -116,24 +119,26 @@
                                         </div>
                                         <div class="card-body">
                                             <form method="post">
+
                                                 <div class="form-row">
                                                     <div class="col">
-                                                        <div class="form-group"><label for="id"><strong>ID del producto</strong></label><input class="form-control" type="text" id="id" placeholder="Ingresa el ID del producto" name="id" required></div>
+                                                        <div class="form-group"><label for="id"><strong>ID del producto</strong></label><input class="form-control" id="id" type="text" id="id" name="id" placeholder="{{ article_id }}" disabled></div>
                                                     </div>
                                                     <div class="col">
-                                                        <div class="form-group"><label for="name"><strong>Nombre del producto</strong></label><input class="form-control" type="text" id="name" placeholder="Ingresa el nombre del producto" name="name" required></div>
+                                                        <div class="form-group"><label for="name"><strong>Nombre del producto</strong></label><input class="form-control" type="text" id="name" placeholder="Ingresa el nuevo nombre del producto" name="name"></div>
                                                     </div>
                                                 </div>
                                                 <div class="form-row">
                                                     <div class="col">
-                                                        <div class="form-group"><label for="description"><strong>Descripcion</strong></label><input class="form-control" type="text" id="description" placeholder="Ingrese la descripcion del producto" name="description" required></div>
+                                                        <div class="form-group"><label for="description"><strong>Descripcion</strong></label><input class="form-control" type="text" id="description" placeholder="Ingrese la nueva descripcion del producto" name="description"></div>
                                                     </div>
                                                 </div>
                                                 <div class="form-row">
                                                     <div class="col">
                                                         <div class="form-group">
-                                                            <span class="input-group-addon">Por favor elije la categoria</span>
+                                                            <span class="input-group-addon">Por favor elije la nueva categoria</span>
                                                                 <select name="category" class="selectpicker form-control" id="category">
+                                                                    <option value="-">-</option>
                                                                     {% for o in data %}
                                                                         <option value="{{ o }}">{{ o }}</option>
                                                                     {% endfor %}                                              
@@ -143,10 +148,10 @@
                                                 </div>
                                                 <div class="form-row">
                                                     <div class="col">
-                                                        <div class="form-group"><label for="unit"><strong>Unidad</strong></label><input class="form-control" type="text" id="unit" placeholder="Ingresa la unidad del producto" name="unit" required></div>
+                                                        <div class="form-group"><label for="unit"><strong>Unidad</strong></label><input class="form-control" type="text" id="unit" placeholder="Ingresa la nueva unidad del producto" name="unit"></div>
                                                     </div>
                                                     <div class="col">
-                                                        <div class="form-group"><label for="defaultPrice"><strong>Precio predeterminado</strong></label><input class="form-control" type="text" id="defaultPrice" placeholder="Ingresa el precio predeterminado" name="defaultPrice"></div>
+                                                        <div class="form-group"><label for="default_price"><strong>Precio predeterminado</strong></label><input class="form-control" type="text" id="default_price" placeholder="Ingresa el precio predeterminado" name="default_price"></div>
                                                     </div>
                                                 </div>
                                                 <div class="form-row" style="text-align: center;margin-left: auto;margin-right: auto;">
@@ -155,8 +160,12 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-row" style="margin-left: auto;margin-right: auto;">
-                                                    <div class="col form-group" style="text-align: left;"><button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-user-plus"></i>&nbsp; Crear articulo</button></div>
-                                                    <div class="col form-group" style="text-align: right;"><a class="btn btn-primary btn-sm d-none d-sm-inline-block" style="background-color:red; border-color: red;" role="button" href="/articles"><i class="fas fa-undo"></i>&nbsp; <strong>Regresar</strong></a></div>
+                                                    <div class="col form-group" style="text-align: left;">
+                                                        <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-folder-plus"></i>&nbsp; Modificar articulo</button>
+                                                    </div>
+                                                    <div class="col form-group" style="text-align: right;">
+                                                        <a class="btn btn-primary btn-sm d-none d-sm-inline-block" style="background-color:red; border-color: red;" role="button" href="http://localhost:5000/art_confirmation?id={{ article_id }}"><i class="fas fa-folder-minus"></i>&nbsp; <strong>Eliminar articulo</strong></a>
+                                                    </div>
                                                 </div>
                                             </form>
                                         </div>
